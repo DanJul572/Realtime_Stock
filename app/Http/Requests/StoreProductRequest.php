@@ -37,9 +37,8 @@ class StoreProductRequest extends FormRequest
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'validation errors',
-            'data'      => $validator->errors()
+            'error' => $validator->errors()->first(),
+            'statusCode' => 400,
         ], 400));
     }
 }
