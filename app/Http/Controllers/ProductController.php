@@ -14,7 +14,12 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        return Product::whereLike('name', '%' . $request->input('quickFilter') . '%')->paginate(10);
+        $quickFilter = $request->input('quickFilter');
+        $orderBy = $request->input('orderBy');
+        $order = $request->input('order');
+        return Product::whereLike('name', '%' . $quickFilter . '%')
+            ->orderBy($orderBy, $order)
+            ->paginate(10);
     }
 
     /**
