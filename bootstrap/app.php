@@ -22,6 +22,16 @@ return Application::configure(basePath: dirname(__DIR__))
                     'error' => 'Inernal Serrver Error',
                     'statusCode' => $response->getStatusCode(),
                 ], 500);
+            } else if ($response->getStatusCode() === 404) {
+                return response()->json([
+                    'error' => 'Not Found',
+                    'statusCode' => $response->getStatusCode(),
+                ], 500);
+            } else if ($response->getStatusCode() === 405) {
+                return response()->json([
+                    'error' => 'Method Not Allowed',
+                    'statusCode' => $response->getStatusCode(),
+                ], 500);
             }
             return $response;
         });
