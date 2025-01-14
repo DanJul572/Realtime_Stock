@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->stopIgnoring(AuthenticationException::class);
         $exceptions->render(function (AuthenticationException $exception, Request $request) {
             return response()->json([
-                'message' => 'Unauthorized',
+                'error' => 'Unauthorized',
             ], 401);
         });
         $exceptions->respond(function (Response $response) {
