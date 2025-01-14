@@ -1,8 +1,10 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -16,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->stopIgnoring(AuthenticationException::class);
+        $exceptions->render(function (AuthenticationException $exception, Request $request) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
+        });
         $exceptions->respond(function (Response $response) {
             if ($response->getStatusCode() === 500) {
                 return response()->json([
@@ -26,12 +34,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'error' => 'Not Found',
                     'statusCode' => $response->getStatusCode(),
-                ], 500);
+                ], 404);
             } else if ($response->getStatusCode() === 405) {
                 return response()->json([
                     'error' => 'Method Not Allowed',
                     'statusCode' => $response->getStatusCode(),
-                ], 500);
+                ], 405);
             }
             return $response;
         });
