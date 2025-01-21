@@ -18,6 +18,8 @@ class ProductController extends Controller
         $orderBy = $request->input('orderBy');
         $order = $request->input('order');
         return Product::whereLike('name', '%' . $quickFilter . '%')
+            ->orWhereLike('type', '%' . $quickFilter . '%')
+            ->orWhereLike('stock', '%' . $quickFilter . '%')
             ->orderBy($orderBy, $order)
             ->paginate(10);
     }
