@@ -25,9 +25,8 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'colorCode' => 'required',
             'name' => 'required',
-            'size' => 'required|numeric',
+            'size' => 'required',
             'stock' => 'required|numeric',
             'surface' => 'required',
             'type' => 'required',
