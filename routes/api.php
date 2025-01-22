@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function() {
@@ -15,4 +16,6 @@ Route::group([
 ], function () {
     Route::apiResource('products', ProductController::class);
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::post('/transactions', [TransactionController::class, 'store']);
 });
