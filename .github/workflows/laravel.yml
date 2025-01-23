@@ -40,5 +40,4 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: /
-        ftp-connection-timeout: 120
-        ftp-data-timeout: 120
+        timeout: 190000
