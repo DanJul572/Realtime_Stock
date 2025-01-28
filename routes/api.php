@@ -15,9 +15,13 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::group([
     'middleware' => 'auth:sanctum'
 ], function () {
+    Route::get('/products/options', [ProductController::class, 'options']);
     Route::apiResource('products', ProductController::class);
+
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
     Route::get('/dashboard', [DashboardController::class, 'index']);
+    
     Route::get('/transactions', [TransactionController::class, 'index']);
     Route::post('/transactions', [TransactionController::class, 'store']);
 });

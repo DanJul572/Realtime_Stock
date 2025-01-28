@@ -14,20 +14,16 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $isWihoutProps = $request->input('isWihoutProps');
         $order = $request->input('order');
         $orderBy = $request->input('orderBy');
         $quickFilter = $request->input('quickFilter');
 
-        if ($isWihoutProps == 'false') {
-            return Product::whereLike('name', '%' . $quickFilter . '%')
-                ->orWhereLike('type', '%' . $quickFilter . '%')
-                ->orWhereLike('stock', '%' . $quickFilter . '%')
-                ->orderBy($orderBy, $order)
-                ->paginate(10);
-        }
-
-        return Product::all();
+        return Product::whereLike('name', '%' . $quickFilter . '%')
+            ->orWhereLike('size', '%' . $quickFilter . '%')
+            ->orWhereLike('type', '%' . $quickFilter . '%')
+            ->orWhereLike('stock', '%' . $quickFilter . '%')
+            ->orderBy($orderBy, $order)
+            ->paginate(10);
     }
 
     /**
@@ -62,5 +58,18 @@ class ProductController extends Controller
     {
         $product->delete();
         return 'Product has been deleted.';
+    }
+
+    public function options()
+    {
+        return Product::select('id', 'name', 'type')
+        ->orderBy('name', 'asc')
+        ->get()
+        ->map(function ($item) {
+            return [
+                'label' => $item->name . ' - ' . $item->type,
+                'value' => $item->id,
+            ];
+        });
     }
 }
