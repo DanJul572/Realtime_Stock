@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreProductRequest extends FormRequest
+class StoredUserRequest extends FormRequest
 {
 
     /**
@@ -25,12 +25,10 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => 'nullable',
             'name' => 'required',
-            'size' => 'required',
-            'stock' => 'required|numeric',
-            'surface' => 'required',
-            'type' => 'required',
+            'email' => 'required|email',
+            'role_id' => 'required|numeric',
+            'password' => 'required',
         ];
     }
 

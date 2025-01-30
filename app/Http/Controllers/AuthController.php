@@ -19,13 +19,13 @@ class AuthController extends Controller
             ];
         }
         return response()->json([
-            'message' => 'Username or Password is invalid'
+            'error' => 'Username or Password is invalid'
         ], 400);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        $request->user()->currentAccessToken()->delete();
         return [
             'message' => 'you have successfully logged out'
         ];
