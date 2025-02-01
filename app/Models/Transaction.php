@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    protected $fillable = ['user_id', 'product_id', 'count'];
+    protected $fillable = ['user_id', 'product_id', 'count', 'transaction_type_id'];
 
     public function user()
     {
@@ -16,5 +16,10 @@ class Transaction extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function transactionType()
+    {
+        return $this->belongsTo(TransactionType::class);
     }
 }
