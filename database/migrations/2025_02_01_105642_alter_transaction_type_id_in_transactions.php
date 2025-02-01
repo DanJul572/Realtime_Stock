@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
-            $table->integer('user_id');
-            $table->integer('product_id');
-            $table->integer('count');
-            $table->timestamps();
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->integer('transaction_type_id')->after('product_id')->nullable();
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('transactions');
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->dropColumn('transaction_type_id');
+        });
     }
 };
