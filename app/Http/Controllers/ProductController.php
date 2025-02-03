@@ -63,12 +63,12 @@ class ProductController extends Controller
 
     public function options()
     {
-        return Product::select('id', 'name', 'type')
+        return Product::select('id', 'name', 'type', 'size')
         ->orderBy('name', 'asc')
         ->get()
         ->map(function ($item) {
             return [
-                'label' => $item->name . ' - ' . $item->type,
+                'label' => $item->name . ' - ' . $item->type . ' - ' . $item->size,
                 'value' => $item->id,
             ];
         });
