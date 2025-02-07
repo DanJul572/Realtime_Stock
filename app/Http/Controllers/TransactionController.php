@@ -31,6 +31,7 @@ class TransactionController extends Controller
         )
         ->where('transactions.id', 'like', '%' . $quickFilter . '%')
         ->orWhere('transactions.count', 'like', '%' . $quickFilter . '%')
+        ->orWhere('transactions.created_at', 'like', '%' . $quickFilter . '%')
         ->orWhere('users.name', 'like', '%' . $quickFilter . '%')
         ->orWhere('products.name', 'like', '%' . $quickFilter . '%')
         ->orWhere('products.type', 'like', '%' . $quickFilter . '%')
