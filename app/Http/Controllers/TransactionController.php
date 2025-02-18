@@ -27,6 +27,7 @@ class TransactionController extends Controller
             'users.name as user_name',
             'products.name as product_name',
             'products.type as product_type',
+            'products.size as product_size',
             'transaction_types.name as transaction_type_name',
         )
         ->where('transactions.id', 'like', '%' . $quickFilter . '%')
@@ -35,6 +36,7 @@ class TransactionController extends Controller
         ->orWhere('users.name', 'like', '%' . $quickFilter . '%')
         ->orWhere('products.name', 'like', '%' . $quickFilter . '%')
         ->orWhere('products.type', 'like', '%' . $quickFilter . '%')
+        ->orWhere('products.size', 'like', '%' . $quickFilter . '%')
         ->orWhere('transaction_types.name', 'like', '%' . $quickFilter . '%')
         ->orderBy($orderBy, $order)
         ->paginate(10);
