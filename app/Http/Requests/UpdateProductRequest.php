@@ -30,6 +30,9 @@ class UpdateProductRequest extends FormRequest
             'stock' => 'required|numeric',
             'surface' => 'required',
             'type' => 'required',
+            'price_1' => 'required',
+            'price_2' => 'required',
+            'category_id' => 'required',
         ];
     }
 

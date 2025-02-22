@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             'role_id' => 1
         ]);
         $this->call([
+            CategorySeeder::class,
             RoleSeeder::class,
             TransactionTypeSeeder::class,
         ]);

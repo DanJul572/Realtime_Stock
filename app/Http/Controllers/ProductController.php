@@ -18,11 +18,23 @@ class ProductController extends Controller
         $orderBy = $request->input('orderBy');
         $quickFilter = $request->input('quickFilter');
 
-        return Product::select('id', 'name', 'size', 'type', 'stock')
-            ->whereLike('name', '%' . $quickFilter . '%')
+        return Product::select(
+            'products.id',
+            'products.name as product_name',
+            'products.size',
+            'products.type',
+            'products.stock',
+            'products.price_1',
+            'products.price_2',
+            'categories.name as category_name')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->whereLike('products.name', '%' . $quickFilter . '%')
             ->orWhereLike('size', '%' . $quickFilter . '%')
             ->orWhereLike('type', '%' . $quickFilter . '%')
             ->orWhereLike('stock', '%' . $quickFilter . '%')
+            ->orWhereLike('price_1', '%' . $quickFilter . '%')
+            ->orWhereLike('price_2', '%' . $quickFilter . '%')
+            ->orWhereLike('categories.name', '%' . $quickFilter . '%')
             ->orderBy($orderBy, $order)
             ->paginate(10);
     }

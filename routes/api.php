@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
@@ -18,6 +19,9 @@ Route::group([
 ], function () {
     Route::get('/products/options', [ProductController::class, 'options']);
     Route::apiResource('products', ProductController::class);
+
+    Route::get('/categories/options', [CategoryController::class, 'options']);
+    Route::apiResource('categories', CategoryController::class);
 
     Route::apiResource('users', UserController::class);
 
