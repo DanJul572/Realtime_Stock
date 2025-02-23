@@ -2,18 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
+use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $order = $request->input('order');
+        $orderBy = $request->input('orderBy');
+        $quickFilter = $request->input('quickFilter');
+
+        return Category::whereLike('name', '%' . $quickFilter . '%')
+        ->orderBy($orderBy, $order)
+        ->paginate(10);
     }
 
     /**
@@ -21,7 +28,8 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request)
     {
-        //
+        $category = Category::create($request->validated());
+        return $category;
     }
 
     /**
@@ -29,7 +37,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        //
+        return $category;
     }
 
     /**
@@ -37,7 +45,8 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-        //
+        $category->update($request->validated());
+        return $category->fresh();
     }
 
     /**
@@ -45,7 +54,8 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        //
+        $category->delete();
+        return 'Category has been deleted.';
     }
 
     public function options()
