@@ -73,9 +73,12 @@ class ProductController extends Controller
         return 'Product has been deleted.';
     }
 
-    public function options()
+    public function options(Request $request)
     {
+        $categoryFilter = $request->input('categoryFilter');
+
         return Product::select('id', 'name', 'type', 'size')
+        ->where('category_id', '=', $categoryFilter)
         ->orderBy('name', 'asc')
         ->get()
         ->map(function ($item) {
