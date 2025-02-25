@@ -52,7 +52,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        return $product->with('category');
+        return $product->load('category');
     }
 
     /**
