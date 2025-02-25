@@ -17,4 +17,9 @@ class Product extends Model
         'surface',
         'type',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 }
