@@ -17,8 +17,9 @@ class ProductController extends Controller
         $order = $request->input('order');
         $orderBy = $request->input('orderBy');
         $quickFilter = $request->input('quickFilter');
+        $isWithoutImage = $request->input('isWithoutImage');
 
-        return Product::select(
+        $query = Product::select(
             'products.id',
             'products.name as product_name',
             'products.size',
@@ -26,18 +27,28 @@ class ProductController extends Controller
             'products.stock',
             'products.price_1',
             'products.price_2',
-            'categories.name as category_name')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->whereLike('products.name', '%' . $quickFilter . '%')
-            ->orWhereLike('size', '%' . $quickFilter . '%')
-            ->orWhereLike('type', '%' . $quickFilter . '%')
-            ->orWhereLike('stock', '%' . $quickFilter . '%')
-            ->orWhereLike('price_1', '%' . $quickFilter . '%')
-            ->orWhereLike('price_2', '%' . $quickFilter . '%')
-            ->orWhereLike('categories.name', '%' . $quickFilter . '%')
-            ->orderBy($orderBy, $order)
-            ->paginate(10);
+            'categories.name as category_name'
+        )
+        ->join('categories', 'products.category_id', '=', 'categories.id')
+        ->where(function ($q) use ($quickFilter) {
+            if ($quickFilter) {
+                $q->where('products.name', 'like', "%$quickFilter%")
+                    ->orWhere('size', 'like', "%$quickFilter%")
+                    ->orWhere('type', 'like', "%$quickFilter%")
+                    ->orWhere('stock', 'like', "%$quickFilter%")
+                    ->orWhere('price_1', 'like', "%$quickFilter%")
+                    ->orWhere('price_2', 'like', "%$quickFilter%")
+                    ->orWhere('categories.name', 'like', "%$quickFilter%");
+            }
+        });
+
+        if ($isWithoutImage === 'true') {
+            $query->whereNull('products.image');
+        }
+
+        return $query->orderBy($orderBy, $order)->paginate(10);
     }
+
 
     /**
      * Store a newly created resource in storage.
