@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ErrorLogController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
@@ -34,4 +36,13 @@ Route::group([
     Route::get('/transactions', [TransactionController::class, 'index']);
     Route::post('/transactions', [TransactionController::class, 'store']);
     Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+
+    Route::middleware('admin')->group(function () {
+        Route::get('/audit-logs/summary', [AuditLogController::class, 'summary']);
+        Route::get('/audit-logs', [AuditLogController::class, 'index']);
+        Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show']);
+
+        Route::get('/error-logs', [ErrorLogController::class, 'index']);
+        Route::get('/error-logs/{errorLog}', [ErrorLogController::class, 'show']);
+    });
 });

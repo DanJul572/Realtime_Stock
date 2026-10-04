@@ -25,7 +25,7 @@ class StoreTransactionRequest extends FormRequest
     {
         return [
             'transaction_type_id' => 'required|numeric',
-            'product_id' => 'required|numeric',
+            'product_id' => 'required|numeric|exists:products,id',
             'count' => 'required|numeric',
         ];
     }
