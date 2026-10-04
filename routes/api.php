@@ -18,6 +18,8 @@ Route::group([
     'middleware' => 'auth:sanctum'
 ], function () {
     Route::get('/products/options', [ProductController::class, 'options']);
+    Route::get('/products/by-code', [ProductController::class, 'findByCode']);
+    Route::get('/products/check-code', [ProductController::class, 'checkCode']);
     Route::apiResource('products', ProductController::class);
 
     Route::get('/categories/options', [CategoryController::class, 'options']);

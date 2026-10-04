@@ -21,6 +21,7 @@ class ProductController extends Controller
 
         $query = Product::select(
             'products.id',
+            'products.code',
             'products.name as product_name',
             'products.size',
             'products.type',
@@ -33,6 +34,7 @@ class ProductController extends Controller
         ->where(function ($q) use ($quickFilter) {
             if ($quickFilter) {
                 $q->where('products.name', 'like', "%$quickFilter%")
+                    ->orWhere('products.code', 'like', "%$quickFilter%")
                     ->orWhere('size', 'like', "%$quickFilter%")
                     ->orWhere('type', 'like', "%$quickFilter%")
                     ->orWhere('stock', 'like', "%$quickFilter%")
@@ -82,6 +84,59 @@ class ProductController extends Controller
     {
         $product->delete();
         return 'Product has been deleted.';
+    }
+
+    /**
+     * Find a product by its barcode / QR code (used by the scanner).
+     */
+    public function findByCode(Request $request)
+    {
+        $code = $request->input('code');
+        if (!is_string($code) || $code === '') {
+            return $this->codeRequired();
+        }
+
+        $product = Product::with('category')->where('code', $code)->first();
+
+        if (!$product) {
+            return response()->json([
+                'error' => 'Product not found',
+                'statusCode' => 404,
+            ], 404);
+        }
+
+        return $product;
+    }
+
+    /**
+     * Check whether a code is still free, optionally ignoring one product
+     * (the product being edited). Used before generating/saving a code.
+     */
+    public function checkCode(Request $request)
+    {
+        $code = $request->input('code');
+        if (!is_string($code) || $code === '') {
+            return $this->codeRequired();
+        }
+
+        $exists = Product::where('code', $code)
+            ->when($request->input('ignoreId'), function ($query, $ignoreId) {
+                $query->where('id', '!=', $ignoreId);
+            })
+            ->exists();
+
+        return [
+            'code' => $code,
+            'available' => !$exists,
+        ];
+    }
+
+    private function codeRequired()
+    {
+        return response()->json([
+            'error' => 'The code field is required.',
+            'statusCode' => 400,
+        ], 400);
     }
 
     public function options(Request $request)
