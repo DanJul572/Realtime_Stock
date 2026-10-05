@@ -93,6 +93,27 @@ test('an older base64 image can be replaced by a file', function () {
     Storage::disk('public')->assertExists(storedImagePath($product->id));
 });
 
+test('a null image removes the image and its file', function () {
+    $id = $this->postJson('/api/products', imageProductPayload(['image' => pngDataUrl()]))->json('id');
+    $path = storedImagePath($id);
+
+    $this->putJson("/api/products/$id", imageProductPayload(['image' => null]))
+        ->assertOk()
+        ->assertJsonPath('image', null);
+
+    expect(storedImagePath($id))->toBeNull();
+    Storage::disk('public')->assertMissing($path);
+});
+
+test('an older base64 image can be removed', function () {
+    $product = Product::create(imageProductPayload());
+    DB::table('products')->where('id', $product->id)->update(['image' => pngDataUrl()]);
+
+    $this->putJson("/api/products/{$product->id}", imageProductPayload(['image' => null]))->assertOk();
+
+    expect(storedImagePath($product->id))->toBeNull();
+});
+
 test('deleting a product deletes its image file', function () {
     $id = $this->postJson('/api/products', imageProductPayload(['image' => pngDataUrl()]))->json('id');
     $path = storedImagePath($id);
