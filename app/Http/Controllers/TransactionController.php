@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -49,30 +50,37 @@ class TransactionController extends Controller
     {
         $userId = auth()->user()->id;
 
-        $transaction = Transaction::create([
-            'count' => $request->input('count'),
-            'product_id' => $request->input('product_id'),
-            'transaction_type_id' => $request->input('transaction_type_id'),
-            'user_id' => $userId,
-        ]);
+        // Stock is changed through the Product model (not the relation query)
+        // so the change fires model events and shows up in the audit trail.
+        return DB::transaction(function () use ($request, $userId) {
+            $transaction = Transaction::create([
+                'count' => $request->input('count'),
+                'product_id' => $request->input('product_id'),
+                'transaction_type_id' => $request->input('transaction_type_id'),
+                'user_id' => $userId,
+            ]);
 
-        if ($transaction->transactionType->id == 1) {
-            $transaction->product()->increment('stock', $request->input('count'));
-        } else {
-            $transaction->product()->decrement('stock', $request->input('count'));
-        }
+            if ($transaction->transactionType->id == 1) {
+                $transaction->product->increment('stock', $request->input('count'));
+            } else {
+                $transaction->product->decrement('stock', $request->input('count'));
+            }
 
-        return $transaction;
+            // Keep the response as before, without the product (and its image).
+            return $transaction->unsetRelation('product');
+        });
     }
 
     public function destroy(Transaction $transaction)
     {
-        if ($transaction->transactionType->id == 1) {
-            $transaction->product()->decrement('stock', $transaction->count);
-        } else {
-            $transaction->product()->increment('stock', $transaction->count);
-        }
-        $transaction->delete();
+        DB::transaction(function () use ($transaction) {
+            if ($transaction->transactionType->id == 1) {
+                $transaction->product->decrement('stock', $transaction->count);
+            } else {
+                $transaction->product->increment('stock', $transaction->count);
+            }
+            $transaction->delete();
+        });
         return 'Transaction has been deleted.';
     }
 }

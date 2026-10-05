@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -24,6 +25,12 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'code' => [
+                'nullable',
+                'string',
+                'max:64',
+                Rule::unique('products', 'code')->ignore($this->route('product')),
+            ],
             'image' => 'nullable',
             'name' => 'required',
             'size' => 'required',
