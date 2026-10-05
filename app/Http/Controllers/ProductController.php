@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Support\ProductImage;
+use Closure;
 use Illuminate\Http\Request;
+use Throwable;
 
 class ProductController extends Controller
 {
@@ -57,7 +60,7 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        return Product::create($request->validated());
+        return $this->saveWithImage($request->validated(), fn (array $data) => Product::create($data));
     }
 
     /**
@@ -73,7 +76,13 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $product->update($request->validated());
+        $oldImage = $product->getRawOriginal('image');
+        $this->saveWithImage($request->validated(), fn (array $data) => $product->update($data));
+
+        if ($product->getRawOriginal('image') !== $oldImage) {
+            ProductImage::deleteAfterCommit($oldImage);
+        }
+
         return $product->fresh();
     }
 
@@ -83,7 +92,28 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+        ProductImage::deleteAfterCommit($product->getRawOriginal('image'));
         return 'Product has been deleted.';
+    }
+
+    /**
+     * Stores a newly uploaded image as a file and saves its path instead of
+     * the base64 data. The file is removed again when saving fails, as the
+     * database rollback cannot undo it.
+     */
+    private function saveWithImage(array $data, Closure $save)
+    {
+        $newImage = null;
+        if (!empty($data['image'])) {
+            $data['image'] = $newImage = ProductImage::store($data['image']);
+        }
+
+        try {
+            return $save($data);
+        } catch (Throwable $exception) {
+            ProductImage::delete($newImage);
+            throw $exception;
+        }
     }
 
     /**

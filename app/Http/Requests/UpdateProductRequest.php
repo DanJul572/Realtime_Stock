@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\Base64Image;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -31,7 +32,7 @@ class UpdateProductRequest extends FormRequest
                 'max:64',
                 Rule::unique('products', 'code')->ignore($this->route('product')),
             ],
-            'image' => 'nullable',
+            'image' => ['nullable', new Base64Image],
             'name' => 'required',
             'size' => 'required',
             'stock' => 'required|numeric',

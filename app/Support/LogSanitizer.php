@@ -4,8 +4,8 @@ namespace App\Support;
 
 /**
  * Makes values safe and small enough to store in audit and error logs:
- * secrets are masked, base64 images become a short marker and long strings
- * are truncated.
+ * secrets are masked, base64 images become a short marker (stored image
+ * paths are kept) and long strings are truncated.
  */
 class LogSanitizer
 {
@@ -26,7 +26,7 @@ class LogSanitizer
         foreach ($values as $key => $value) {
             if (in_array(strtolower((string) $key), self::SECRET_KEYS, true)) {
                 $values[$key] = $value === null || $value === '' ? $value : self::MASK;
-            } elseif ($key === 'image' && is_string($value) && $value !== '') {
+            } elseif ($key === 'image' && ProductImage::isDataUrl($value)) {
                 $values[$key] = self::describeImage($value);
             } elseif (is_array($value)) {
                 $values[$key] = self::clean($value);

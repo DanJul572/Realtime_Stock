@@ -8,6 +8,7 @@ use App\Models\TransactionType;
 use App\Models\User;
 use App\Support\LogSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -73,12 +74,24 @@ test('an update without changes is not audited', function () {
     expect(auditLogsOf('product'))->toHaveCount(1);
 });
 
-test('product images are stored as a short marker instead of base64', function () {
-    $image = 'data:image/jpeg;base64,' . str_repeat('A', 4096);
+test('product images are audited as their file path instead of base64', function () {
+    Storage::fake('public');
+    $image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
     $this->postJson('/api/products', auditProductPayload(['image' => $image]))->assertCreated();
 
-    $value = auditLogsOf('product')->first()->new_values['image'];
+    expect(auditLogsOf('product')->first()->new_values['image'])
+        ->toMatch('#^products/[0-9a-f-]{36}\.png$#');
+});
+
+test('older base64 product images are stored as a short marker', function () {
+    $image = 'data:image/jpeg;base64,' . str_repeat('A', 4096);
+    $product = Product::create(auditProductPayload());
+    Product::whereKey($product->id)->toBase()->update(['image' => $image]);
+
+    Product::find($product->id)->delete();
+
+    $value = auditLogsOf('product')->last()->old_values['image'];
     expect($value)->toBe(LogSanitizer::describeImage($image))
         ->and($value)->toStartWith('[image 4 KB · ');
 });

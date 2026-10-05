@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\Base64Image;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -27,7 +28,7 @@ class StoreProductRequest extends FormRequest
         return [
             'category_id' => 'required',
             'code' => 'nullable|string|max:64|unique:products,code',
-            'image' => 'nullable',
+            'image' => ['nullable', new Base64Image],
             'name' => 'required',
             'price_1' => 'required',
             'price_2' => 'required',
