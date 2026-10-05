@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DatabaseTransaction;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\LogFailedRequest;
 use Illuminate\Auth\AuthenticationException;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LogFailedRequest::class);
+        $middleware->api(prepend: DatabaseTransaction::class);
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);

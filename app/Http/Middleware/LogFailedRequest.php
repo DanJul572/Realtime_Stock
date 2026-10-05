@@ -15,6 +15,11 @@ use Throwable;
  * Registered as global middleware so unknown routes (404) and failed
  * authentication (401) are recorded too. Exceptions thrown while handling the
  * request are attached to the response by the routing pipeline.
+ *
+ * It runs outside the DatabaseTransaction middleware, so the request's changes
+ * are already rolled back when the log is written. If the log cannot be stored
+ * in the database (e.g. the database itself is down), it is appended to a
+ * daily text file in storage/logs/error-logs instead.
  */
 class LogFailedRequest
 {
@@ -38,13 +43,24 @@ class LogFailedRequest
 
     private function record(Request $request, Response $response): void
     {
+        $attributes = $this->attributes($request, $response);
+
+        try {
+            ErrorLog::create($attributes);
+        } catch (Throwable $exception) {
+            self::writeToFile($attributes, $exception);
+        }
+    }
+
+    private function attributes(Request $request, Response $response): array
+    {
         $statusCode = $response->getStatusCode();
         $exception = property_exists($response, 'exception') ? $response->exception : null;
         $body = json_decode((string) $response->getContent(), true);
         $requestBody = $request->isMethod('GET') ? [] : $request->all();
 
-        ErrorLog::create([
-            'user_id' => $request->user('sanctum')?->id,
+        return [
+            'user_id' => $this->userId($request),
             'method' => $request->method(),
             'url' => $request->fullUrl(),
             'status_code' => $statusCode,
@@ -60,6 +76,47 @@ class LogFailedRequest
                 : null,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
-        ]);
+        ];
+    }
+
+    // Looking up the token needs the database; when it is down the log is
+    // still written (to the file) without the user.
+    private function userId(Request $request): ?int
+    {
+        try {
+            return $request->user('sanctum')?->id;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    public static function fallbackPath(): string
+    {
+        return storage_path('logs/error-logs/' . now()->format('Y-m-d') . '.txt');
+    }
+
+    private static function writeToFile(array $attributes, Throwable $reason): void
+    {
+        $path = self::fallbackPath();
+        if (!is_dir(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        $entry = [
+            'logged_at' => now()->toDateTimeString(),
+            'error_log' => $attributes,
+            'database_error' => get_class($reason) . ': ' . $reason->getMessage(),
+        ];
+
+        $written = file_put_contents(
+            $path,
+            json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE)
+                . PHP_EOL . str_repeat('-', 80) . PHP_EOL,
+            FILE_APPEND | LOCK_EX
+        );
+
+        if ($written === false) {
+            throw new \RuntimeException("Could not write the error log to {$path}", 0, $reason);
+        }
     }
 }
